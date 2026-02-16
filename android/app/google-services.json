@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "763416499228",
+    "project_id": "unifound-app",
+    "storage_bucket": "unifound-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:763416499228:android:4c655ab1c7d6268d237bd9",
+        "android_client_info": {
+          "package_name": "com.example.unifound"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9kh5ZZZfaNEbG77E0-TbADRnvujkSaFE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:763416499228:android:5bc27b3d240c2c32237bd9",
+        "android_client_info": {
+          "package_name": "com.unifound.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9kh5ZZZfaNEbG77E0-TbADRnvujkSaFE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
