@@ -8,18 +8,33 @@ import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 
 import 'package:unifound/screens/posts/edit_item_screen.dart';
+import 'package:unifound/screens/chat/chat_detail_screen.dart';
 import '../../providers/item_provider.dart';
 import '../../providers/my_posts_provider.dart';
+import '../../providers/chat_provider.dart';
 
-class ItemDetailScreen extends StatelessWidget {
+class ItemDetailScreen extends StatefulWidget {
   final ItemModel item;
 
   const ItemDetailScreen({super.key, required this.item});
 
   @override
+  State<ItemDetailScreen> createState() => _ItemDetailScreenState();
+}
+
+class _ItemDetailScreenState extends State<ItemDetailScreen> {
+  late ItemModel _item;
+
+  @override
+  void initState() {
+    super.initState();
+    _item = widget.item;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final isOwner = authProvider.currentUserModel?.userId == item.userId;
+    final isOwner = authProvider.currentUserModel?.userId == _item.userId;
 
     return Scaffold(
       appBar: AppBar(
@@ -28,13 +43,19 @@ class ItemDetailScreen extends StatelessWidget {
           if (isOwner)
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EditItemScreen(item: item),
+                    builder: (context) => EditItemScreen(item: _item),
                   ),
                 );
+
+                if (result != null && result is ItemModel) {
+                  setState(() {
+                    _item = result;
+                  });
+                }
               },
             ),
           if (isOwner)
@@ -43,9 +64,9 @@ class ItemDetailScreen extends StatelessWidget {
               onPressed: () {
                 _confirmDelete(
                   context,
-                  item.itemId,
-                  item.imageUrl,
-                  item.userId,
+                  _item.itemId,
+                  _item.imageUrl,
+                  _item.userId,
                 );
               },
             ),
@@ -55,7 +76,7 @@ class ItemDetailScreen extends StatelessWidget {
               onPressed: () {
                 _confirmReport(
                   context,
-                  item.itemId,
+                  _item.itemId,
                   authProvider.currentUserModel?.userId,
                 );
               },
@@ -67,9 +88,9 @@ class ItemDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image
-            if (item.imageUrl.isNotEmpty)
+            if (_item.imageUrl.isNotEmpty)
               CachedNetworkImage(
-                imageUrl: item.imageUrl,
+                imageUrl: _item.imageUrl,
                 width: double.infinity,
                 height: 300,
                 fit: BoxFit.cover,
@@ -108,12 +129,12 @@ class ItemDetailScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          item.title,
+                          _item.title,
                           style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      _buildStatusBadge(item.status),
+                      _buildStatusBadge(_item.status),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -128,7 +149,7 @@ class ItemDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        _formatDate(item.date),
+                        _formatDate(_item.date),
                         style: const TextStyle(color: Colors.grey),
                       ),
                       const SizedBox(width: 16),
@@ -140,7 +161,7 @@ class ItemDetailScreen extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          item.location,
+                          _item.location,
                           style: const TextStyle(color: Colors.grey),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -156,7 +177,7 @@ class ItemDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    item.description,
+                    _item.description,
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                   const SizedBox(height: 24),
@@ -166,18 +187,18 @@ class ItemDetailScreen extends StatelessWidget {
                     children: [
                       _buildInfoChip(
                         Icons.category,
-                        item.category.toString().split('.').last.toUpperCase(),
+                        _item.category.toString().split('.').last.toUpperCase(),
                       ),
                       const SizedBox(width: 12),
                       _buildInfoChip(
-                        item.itemType == ItemType.lost
+                        _item.itemType == ItemType.lost
                             ? Icons.search
                             : Icons.check_circle,
-                        item.itemType.toString().split('.').last.toUpperCase(),
-                        color: item.itemType == ItemType.lost
+                        _item.itemType.toString().split('.').last.toUpperCase(),
+                        color: _item.itemType == ItemType.lost
                             ? Colors.red[100]
                             : Colors.green[100],
-                        textColor: item.itemType == ItemType.lost
+                        textColor: _item.itemType == ItemType.lost
                             ? Colors.red
                             : Colors.green,
                       ),
@@ -198,8 +219,8 @@ class ItemDetailScreen extends StatelessWidget {
                         CircleAvatar(
                           backgroundColor: AppColors.primary,
                           child: Text(
-                            item.userName.isNotEmpty
-                                ? item.userName[0].toUpperCase()
+                            _item.userName.isNotEmpty
+                                ? _item.userName[0].toUpperCase()
                                 : '?',
                             style: const TextStyle(color: Colors.white),
                           ),
@@ -209,13 +230,13 @@ class ItemDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.userName,
+                              _item.userName,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              'Contact: ${item.userContact}',
+                              'Contact: ${_item.userContact}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,
@@ -232,30 +253,30 @@ class ItemDetailScreen extends StatelessWidget {
                   if (!isOwner)
                     CustomButton(
                       text:
-                          'Contact ${item.itemType == ItemType.lost ? "Owner" : "Finder"}',
+                          'Contact ${_item.itemType == ItemType.lost ? "Owner" : "Finder"}',
                       onPressed: () {
                         // Navigate to chat
                         _contactUser(
                           context,
-                          item,
+                          _item,
                           authProvider.currentUserModel?.userId,
                         );
                       },
                       backgroundColor: AppColors.primary,
                     ),
 
-                  if (isOwner && item.status == ItemStatus.active)
+                  if (isOwner && _item.status == ItemStatus.active)
                     Column(
                       children: [
                         const SizedBox(height: 12),
                         CustomButton(
                           text:
-                              'Mark as ${item.itemType == ItemType.lost ? "Recovered" : "Returned"}',
+                              'Mark as ${_item.itemType == ItemType.lost ? "Recovered" : "Returned"}',
                           onPressed: () {
                             _updateStatus(
                               context,
-                              item.itemId,
-                              item.itemType == ItemType.lost
+                              _item.itemId,
+                              _item.itemType == ItemType.lost
                                   ? ItemStatus.recovered
                                   : ItemStatus.returned,
                             );
@@ -442,15 +463,27 @@ class ItemDetailScreen extends StatelessWidget {
     ItemStatus status,
   ) async {
     try {
-      await DatabaseService().updateItemStatus(itemId, status);
-      if (context.mounted) {
+      // Use MyPostsProvider to update state if we are the owner!
+      // Even if not using MyPostsProvider for display, we should notify it.
+      await Provider.of<MyPostsProvider>(
+        context,
+        listen: false,
+      ).updatePostStatus(itemId, status);
+
+      // We also need to update our local state to reflect the change immediately
+      if (mounted) {
+        setState(() {
+          _item = _item.copyWith(status: status);
+        });
+
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Status updated!')));
-        Navigator.pop(context); // simple refresh by going back
+        // We do NOT pop here anymore, we just update the UI.
+        // User can pop manually.
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -464,18 +497,34 @@ class ItemDetailScreen extends StatelessWidget {
     String? currentUserId,
   ) async {
     if (currentUserId == null) return;
+
+    // Check if chatting with self
+    if (currentUserId == item.userId) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You cannot chat with yourself')),
+      );
+      return;
+    }
+
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+
     try {
-      // Create chat or get existing
-      String chatId = await DatabaseService().createChat(
+      String? chatId = await chatProvider.createOrGetChat(
         item.itemId,
         currentUserId,
         item.userId,
       );
-      // Navigate to Chat Detail (Placeholder for now)
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Chat created: $chatId. Chat screen coming soon!'),
+
+      if (chatId != null && context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatDetailScreen(
+              chatId: chatId,
+              otherUserId: item.userId,
+              otherUserName: item.userName,
+              contextItem: item, // Pass item for context banner
+            ),
           ),
         );
       }
@@ -483,7 +532,7 @@ class ItemDetailScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error starting chat: $e')));
       }
     }
   }

@@ -8,6 +8,7 @@ class ChatModel {
   final String lastMessage;
   final DateTime lastMessageTime;
   final DateTime createdAt;
+  final Map<String, int> unreadCounts;
 
   ChatModel({
     required this.chatId,
@@ -17,6 +18,7 @@ class ChatModel {
     required this.lastMessage,
     required this.lastMessageTime,
     required this.createdAt,
+    this.unreadCounts = const {},
   });
 
   factory ChatModel.fromFirestore(DocumentSnapshot doc) {
@@ -31,6 +33,7 @@ class ChatModel {
       lastMessage: data['lastMessage'] ?? '',
       lastMessageTime: (data['lastMessageTime'] as Timestamp).toDate(),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
+      unreadCounts: Map<String, int>.from(data['unreadCounts'] ?? {}),
     );
   }
 
@@ -42,6 +45,7 @@ class ChatModel {
       'lastMessage': lastMessage,
       'lastMessageTime': Timestamp.fromDate(lastMessageTime),
       'createdAt': Timestamp.fromDate(createdAt),
+      'unreadCounts': unreadCounts,
     };
   }
 }

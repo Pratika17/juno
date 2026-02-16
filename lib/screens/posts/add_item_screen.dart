@@ -197,7 +197,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         Provider.of<MyPostsProvider>(
           context,
           listen: false,
-        ).fetchMyPosts(user.userId);
+        ).fetchMyPosts(user.userId, forceRefresh: true);
 
         // Clear form
         _titleController.clear();

@@ -12,6 +12,7 @@ class MyPostsProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   bool _hasLoaded = false;
+  String? _lastFetchedUserId;
 
   List<ItemModel> get myItems => _myItems;
   bool get isLoading => _isLoading;
@@ -24,13 +25,24 @@ class MyPostsProvider extends ChangeNotifier {
   List<ItemModel> get foundItems =>
       _myItems.where((item) => item.itemType == ItemType.found).toList();
 
-  Future<void> fetchMyPosts(String userId) async {
+  Future<void> fetchMyPosts(String userId, {bool forceRefresh = false}) async {
+    // If the user has changed, reset the state so we fetch fresh data
+    if (_lastFetchedUserId != userId) {
+      _myItems = [];
+      _hasLoaded = false;
+      _lastFetchedUserId = userId;
+    } else if (!forceRefresh && _hasLoaded) {
+      // If same user and already loaded, and not forcing refresh, return early
+      return;
+    }
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _myItems = await _databaseService.getUserItems(userId).first;
+      final stream = _databaseService.getUserItems(userId);
+      _myItems = await stream.first;
       _hasLoaded = true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -59,9 +71,14 @@ class MyPostsProvider extends ChangeNotifier {
   Future<void> updatePostStatus(String itemId, ItemStatus status) async {
     try {
       await _databaseService.updateItemStatus(itemId, status);
+
       final index = _myItems.indexWhere((item) => item.itemId == itemId);
+
       if (index != -1) {
-        _myItems[index] = _myItems[index].copyWith(status: status);
+        // Create a new list reference to ensure listeners detect the change
+        List<ItemModel> updatedList = List.from(_myItems);
+        updatedList[index] = updatedList[index].copyWith(status: status);
+        _myItems = updatedList;
         notifyListeners();
       }
     } catch (e) {

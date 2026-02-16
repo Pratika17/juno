@@ -35,6 +35,11 @@ class ItemProvider with ChangeNotifier {
           .listen(
             (items) {
               print('DEBUG: Fetched ${items.length} items from Firestore.');
+              for (var item in items) {
+                print(
+                  'DEBUG: ItemProvider found item: ${item.itemId}, userId: ${item.userId}, title: ${item.title}',
+                );
+              }
               _items = items;
               // Apply search filter locally since Firestore doesn't support full-text search efficiently with other filters
               if (_searchQuery.isNotEmpty) {

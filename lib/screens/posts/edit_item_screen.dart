@@ -152,9 +152,9 @@ class _EditItemScreenState extends State<EditItemScreen> {
         Provider.of<MyPostsProvider>(
           context,
           listen: false,
-        ).fetchMyPosts(widget.item.userId);
+        ).fetchMyPosts(widget.item.userId, forceRefresh: true);
 
-        Navigator.pop(context);
+        Navigator.pop(context, updatedItem);
       }
     } catch (e) {
       if (mounted) {

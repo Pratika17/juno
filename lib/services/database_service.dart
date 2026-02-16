@@ -62,6 +62,18 @@ class DatabaseService {
     }
   }
 
+  Future<ItemModel?> getItem(String itemId) async {
+    try {
+      DocumentSnapshot doc = await _itemsCollection.doc(itemId).get();
+      if (doc.exists) {
+        return ItemModel.fromFirestore(doc);
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Failed to get item: $e');
+    }
+  }
+
   Future<void> deleteItem(String itemId) async {
     try {
       await _itemsCollection.doc(itemId).delete();
@@ -178,6 +190,7 @@ class DatabaseService {
         lastMessage: '',
         lastMessageTime: DateTime.now(),
         createdAt: DateTime.now(),
+        unreadCounts: {userId1: 0, userId2: 0},
       );
 
       DocumentReference docRef = await _chatsCollection.add(
@@ -201,9 +214,14 @@ class DatabaseService {
         });
   }
 
-  Future<void> sendMessage(String chatId, String senderId, String text) async {
+  Future<void> sendMessage(
+    String chatId,
+    String senderId,
+    String text,
+    String otherUserId,
+  ) async {
     try {
-      MessageModel message = MessageModel(
+      final message = MessageModel(
         messageId: '', // Will be set by Firestore
         senderId: senderId,
         text: text,
@@ -217,8 +235,12 @@ class DatabaseService {
           .collection('messages')
           .add(message.toFirestore());
 
-      // Update last message in chat document
-      await updateLastMessage(chatId, text);
+      // Update last message and increment unread count for the other user
+      await _chatsCollection.doc(chatId).update({
+        'lastMessage': text,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'unreadCounts.$otherUserId': FieldValue.increment(1),
+      });
     } catch (e) {
       throw Exception('Failed to send message: $e');
     }
@@ -245,6 +267,35 @@ class DatabaseService {
       });
     } catch (e) {
       throw Exception('Failed to update last message: $e');
+    }
+  }
+
+  Future<void> markChatAsRead(String chatId, String userId) async {
+    try {
+      // Reset unread count for this user
+      await _chatsCollection.doc(chatId).update({'unreadCounts.$userId': 0});
+
+      // Also mark all messages received by this user as updated?
+      // Ideally we should mark messages as isRead = true where sender != userId
+      // But that requires a batch update which might be expensive if many messages.
+      // For now, let's just reset the counter as that drives the badge.
+      // The 'isRead' on individual messages is harder to maintain without a backend trigger.
+      // We can do a client side batch for recent messages.
+
+      final unreadMessagesQuery = await _chatsCollection
+          .doc(chatId)
+          .collection('messages')
+          .where('isRead', isEqualTo: false)
+          .where('senderId', isNotEqualTo: userId)
+          .get();
+
+      WriteBatch batch = _firestore.batch();
+      for (var doc in unreadMessagesQuery.docs) {
+        batch.update(doc.reference, {'isRead': true});
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Failed to mark chat as read: $e');
     }
   }
 }

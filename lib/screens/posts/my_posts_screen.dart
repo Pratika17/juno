@@ -35,11 +35,7 @@ class _MyPostsScreenState extends State<MyPostsScreen>
       );
 
       if (user != null) {
-        // Only fetch if we haven't loaded yet.
-        // Even if the list is empty, hasLoaded will be true after first fetch attempt.
-        if (!myPostsProvider.hasLoaded) {
-          myPostsProvider.fetchMyPosts(user.userId);
-        }
+        myPostsProvider.fetchMyPosts(user.userId);
       }
     });
   }
@@ -106,7 +102,10 @@ class _MyPostsScreenState extends State<MyPostsScreen>
                             listen: false,
                           ).currentUserModel;
                           if (user != null) {
-                            provider.fetchMyPosts(user.userId);
+                            provider.fetchMyPosts(
+                              user.userId,
+                              forceRefresh: true,
+                            );
                           }
                         },
                         child: const Text('Retry'),
@@ -152,7 +151,7 @@ class _MyPostsScreenState extends State<MyPostsScreen>
           listen: false,
         ).currentUserModel;
         if (user != null) {
-          await provider.fetchMyPosts(user.userId);
+          await provider.fetchMyPosts(user.userId, forceRefresh: true);
         }
       },
       child: ListView.builder(
@@ -166,7 +165,10 @@ class _MyPostsScreenState extends State<MyPostsScreen>
               height: 320,
               child: Stack(
                 children: [
-                  ItemCard(item: item),
+                  ItemCard(
+                    key: ValueKey('${item.itemId}_${item.status}'),
+                    item: item,
+                  ),
                   Positioned(
                     top: 8,
                     right: 8,
