@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/item_model.dart';
 import '../services/database_service.dart';
@@ -22,24 +23,28 @@ class ItemProvider with ChangeNotifier {
   ItemCategory? get currentCategory => _currentCategory;
   String get searchQuery => _searchQuery;
 
+  StreamSubscription? _subscription;
+
   // Constructor to start listening
   ItemProvider() {
     fetchItems();
   }
 
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   void fetchItems() {
     _setLoading(true);
+    _subscription?.cancel(); // Cancel old subscription
     try {
-      _databaseService
+      _subscription = _databaseService
           .getItems(filter: _currentFilter, category: _currentCategory)
           .listen(
             (items) {
               print('DEBUG: Fetched ${items.length} items from Firestore.');
-              for (var item in items) {
-                print(
-                  'DEBUG: ItemProvider found item: ${item.itemId}, userId: ${item.userId}, title: ${item.title}',
-                );
-              }
               _items = items;
               // Apply search filter locally since Firestore doesn't support full-text search efficiently with other filters
               if (_searchQuery.isNotEmpty) {

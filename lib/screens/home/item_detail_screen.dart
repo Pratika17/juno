@@ -426,7 +426,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Report Item'),
-        content: const Text('Is this item spam or inappropriate?'),
+        content: const Text(
+          'Is this item spam or inappropriate?\n\nIf an item receives multiple reports, it will be hidden from the feed pending review. Are you sure you want to report this item?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -438,6 +440,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               try {
                 await DatabaseService().reportItem(itemId, userId);
                 if (context.mounted) {
+                  Navigator.pop(context); // Pop Detail Screen
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Item reported. Thank you.')),
                   );

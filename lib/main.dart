@@ -12,8 +12,10 @@ import 'package:unifound/screens/home/home_screen.dart';
 import 'package:unifound/screens/posts/add_item_screen.dart';
 import 'package:unifound/screens/posts/my_posts_screen.dart';
 import 'package:unifound/screens/chat/chat_list_screen.dart';
+import 'package:unifound/screens/profile/profile_screen.dart';
 import 'package:unifound/utils/constants.dart';
 import 'package:unifound/services/notification_service.dart';
+import 'package:unifound/widgets/offline_banner.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -42,14 +44,39 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primaryColor: AppColors.primary,
-          colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppColors.primary,
+            secondary: AppColors.secondary,
+          ),
           useMaterial3: true,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 2,
+            centerTitle: true,
+          ),
+          cardTheme: CardThemeData(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
           inputDecorationTheme: const InputDecorationTheme(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
-        home: const AuthWrapper(),
+        home: const OfflineBanner(child: AuthWrapper()),
       ),
     );
   }
@@ -107,7 +134,7 @@ class _MainScreenState extends State<MainScreen> {
     const AddItemScreen(),
     const MyPostsScreen(),
     const ChatListScreen(),
-    const Center(child: Text('Profile Screen (Coming Soon)')),
+    const ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {

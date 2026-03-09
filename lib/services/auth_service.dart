@@ -39,8 +39,17 @@ class AuthService {
         return user;
       }
       return null;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        throw Exception('The password provided is too weak.');
+      } else if (e.code == 'email-already-in-use') {
+        throw Exception('The account already exists for that email.');
+      } else if (e.code == 'network-request-failed') {
+        throw Exception('Network error, please check your connection.');
+      }
+      throw Exception(e.message ?? 'An error occurred during sign up.');
     } catch (e) {
-      rethrow;
+      throw Exception('Failed to sign up: $e');
     }
   }
 
@@ -55,8 +64,17 @@ class AuthService {
         password: password,
       );
       return result.user;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
+        throw Exception('Invalid credentials. Please try again.');
+      } else if (e.code == 'network-request-failed') {
+        throw Exception('Network error, please check your connection.');
+      }
+      throw Exception(e.message ?? 'An error occurred during sign in.');
     } catch (e) {
-      rethrow;
+      throw Exception('Failed to sign in: $e');
     }
   }
 

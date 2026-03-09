@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/validators.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -67,43 +68,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Full Name'),
                 validator: (value) =>
-                    value!.isEmpty ? 'Please enter your name' : null,
+                    Validators.validateRequired(value, 'Name'),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
                 keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty || !value.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
+                validator: Validators.validateEmail,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter your phone number' : null,
+                validator: Validators.validatePhone,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _departmentController,
                 decoration: const InputDecoration(labelText: 'Department'),
                 validator: (value) =>
-                    value!.isEmpty ? 'Please enter your department' : null,
+                    Validators.validateRequired(value, 'Department'),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
-                validator: (value) => value!.length < 6
-                    ? 'Password must be at least 6 characters'
-                    : null,
+                validator: Validators.validatePassword,
               ),
               const SizedBox(height: 16),
               TextFormField(

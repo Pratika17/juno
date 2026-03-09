@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/item_provider.dart';
 import '../../utils/constants.dart';
+import '../../widgets/item_card_skeleton.dart';
 import '../../widgets/item_card.dart';
 import '../notifications/notifications_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -288,8 +289,8 @@ class HomeScreen extends StatelessWidget {
   Widget _buildItemGrid(BuildContext context) {
     return Consumer<ItemProvider>(
       builder: (context, provider, child) {
-        if (provider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
+        if (provider.isLoading && provider.items.isEmpty) {
+          return const ItemFeedSkeleton();
         }
 
         if (provider.errorMessage != null) {

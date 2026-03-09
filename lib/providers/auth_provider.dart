@@ -121,7 +121,10 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchCurrentUserModel({User? user}) async {
+  Future<void> fetchCurrentUserModel({
+    User? user,
+    bool forceRefresh = false,
+  }) async {
     final targetUser = user ?? _authService.currentUser;
 
     if (targetUser == null) {
@@ -130,7 +133,8 @@ class AuthProvider with ChangeNotifier {
     }
 
     // Prevent redundant fetch if we already have the correct user loaded
-    if (_currentUserModel != null &&
+    if (!forceRefresh &&
+        _currentUserModel != null &&
         _currentUserModel!.userId == targetUser.uid) {
       return;
     }

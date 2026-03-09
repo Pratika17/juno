@@ -6,6 +6,7 @@ import '../../models/item_model.dart';
 import '../../widgets/item_card.dart';
 import '../../utils/constants.dart';
 import 'edit_item_screen.dart';
+import '../../widgets/item_card_skeleton.dart';
 
 class MyPostsScreen extends StatefulWidget {
   const MyPostsScreen({super.key});
@@ -61,8 +62,10 @@ class _MyPostsScreenState extends State<MyPostsScreen>
       ),
       body: Consumer<MyPostsProvider>(
         builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+          if (provider.isLoading &&
+              provider.lostItems.isEmpty &&
+              provider.foundItems.isEmpty) {
+            return const ItemFeedSkeleton();
           }
 
           if (provider.errorMessage != null) {

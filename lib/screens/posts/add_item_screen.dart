@@ -11,6 +11,7 @@ import '../../providers/my_posts_provider.dart';
 import '../../services/database_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/validators.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -332,9 +333,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 hintText: 'e.g. Red iPhone 13',
                 prefixIcon: const Icon(Icons.title),
                 validator: (value) {
-                  if (value == null || value.isEmpty)
-                    return 'Please enter a title';
-                  if (value.length > 50) return 'Title too long (max 50 chars)';
+                  final reqErr = Validators.validateRequired(value, 'Title');
+                  if (reqErr != null) return reqErr;
+                  if (value!.length > 50)
+                    return 'Title too long (max 50 chars)';
                   return null;
                 },
               ),
@@ -372,11 +374,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 labelText: 'Location',
                 hintText: 'e.g. Library 2nd Floor',
                 prefixIcon: const Icon(Icons.location_on),
-                validator: (value) {
-                  if (value == null || value.isEmpty)
-                    return 'Please enter a location';
-                  return null;
-                },
+                validator: (value) =>
+                    Validators.validateRequired(value, 'Location'),
               ),
               const SizedBox(height: 16),
 
@@ -405,9 +404,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 prefixIcon: const Icon(Icons.description),
                 maxLines: 4,
                 validator: (value) {
-                  if (value == null || value.isEmpty)
-                    return 'Please enter a description';
-                  if (value.length > 500)
+                  final reqErr = Validators.validateRequired(
+                    value,
+                    'Description',
+                  );
+                  if (reqErr != null) return reqErr;
+                  if (value!.length > 500)
                     return 'Description too long (max 500 chars)';
                   return null;
                 },

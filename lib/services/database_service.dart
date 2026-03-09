@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../models/item_model.dart';
 import '../models/chat_model.dart';
@@ -90,8 +91,14 @@ class DatabaseService {
     }
   }
 
-  Stream<List<ItemModel>> getItems({ItemType? filter, ItemCategory? category}) {
-    Query query = _itemsCollection.orderBy('createdAt', descending: true);
+  Stream<List<ItemModel>> getItems({
+    ItemType? filter,
+    ItemCategory? category,
+    bool isAdmin = false,
+  }) {
+    Query query = _itemsCollection
+        .orderBy('createdAt', descending: true)
+        .limit(20);
 
     if (filter != null) {
       query = query.where(
@@ -108,7 +115,20 @@ class DatabaseService {
     }
 
     return query.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => ItemModel.fromFirestore(doc)).toList();
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      var items = snapshot.docs
+          .map((doc) => ItemModel.fromFirestore(doc))
+          .toList();
+      if (!isAdmin) {
+        // Filter out items that have 3 or more reports OR were reported by the current user
+        items = items.where((item) {
+          if (item.reportedBy.length >= 3) return false;
+          if (currentUserId != null && item.reportedBy.contains(currentUserId))
+            return false;
+          return true;
+        }).toList();
+      }
+      return items;
     });
   }
 

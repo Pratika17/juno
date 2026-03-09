@@ -55,6 +55,9 @@ dependencies:
   uuid: ^4.2.1
   timeago: ^3.6.0
   flutter_local_notifications: ^21.0.0
+  package_info_plus: ^9.0.0
+  connectivity_plus: ^7.0.0
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
