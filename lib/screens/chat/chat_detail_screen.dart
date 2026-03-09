@@ -117,6 +117,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         currentUser.userId,
         text,
         widget.otherUserId,
+        senderName: currentUser.name,
       );
       _messageController.clear();
       _scrollToBottom();

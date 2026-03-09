@@ -13,10 +13,14 @@ import 'package:unifound/screens/posts/add_item_screen.dart';
 import 'package:unifound/screens/posts/my_posts_screen.dart';
 import 'package:unifound/screens/chat/chat_list_screen.dart';
 import 'package:unifound/utils/constants.dart';
+import 'package:unifound/services/notification_service.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await NotificationService().initNotifications();
   runApp(const MyApp());
 }
 
@@ -33,6 +37,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'UniFound',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
@@ -90,6 +95,12 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationService().setupInteractedMessage();
+  }
 
   final List<Widget> _screens = [
     const HomeScreen(),

@@ -1,1 +1,44 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"unifound-app","appId":"1:763416499228:android:4c655ab1c7d6268d237bd9","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"unifound-app","appId":"1:763416499228:ios:0f3937154114cc41237bd9","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"unifound-app","configurations":{"android":"1:763416499228:android:4c655ab1c7d6268d237bd9","ios":"1:763416499228:ios:0f3937154114cc41237bd9"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "unifound-app",
+          "appId": "1:763416499228:android:4c655ab1c7d6268d237bd9",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "unifound-app",
+          "appId": "1:763416499228:ios:0f3937154114cc41237bd9",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "unifound-app",
+          "configurations": {
+            "android": "1:763416499228:android:4c655ab1c7d6268d237bd9",
+            "ios": "1:763416499228:ios:0f3937154114cc41237bd9"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

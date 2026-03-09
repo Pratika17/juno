@@ -4,6 +4,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/item_provider.dart';
 import '../../utils/constants.dart';
 import '../../widgets/item_card.dart';
+import '../notifications/notifications_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 // screens/home/ -> .. -> screens/ -> auth/ -> login_screen.dart
 // So ../auth/login_screen.dart is correct.
 
@@ -19,11 +21,36 @@ class HomeScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications coming soon!')),
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('notifications')
+                .where(
+                  'userId',
+                  isEqualTo: Provider.of<AuthProvider>(
+                    context,
+                    listen: false,
+                  ).currentUserModel?.userId,
+                )
+                .where('isRead', isEqualTo: false)
+                .snapshots(),
+            builder: (context, snapshot) {
+              final unreadCount = snapshot.hasData
+                  ? snapshot.data!.docs.length
+                  : 0;
+              return IconButton(
+                icon: Badge(
+                  isLabelVisible: unreadCount > 0,
+                  label: Text(unreadCount > 9 ? '9+' : '$unreadCount'),
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  );
+                },
               );
             },
           ),

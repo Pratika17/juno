@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/chat_model.dart';
 import '../models/message_model.dart';
 import '../services/database_service.dart';
+import '../services/notification_service.dart';
 
 class ChatProvider with ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
@@ -73,11 +74,21 @@ class ChatProvider with ChangeNotifier {
     String chatId,
     String senderId,
     String text,
-    String otherUserId,
-  ) async {
+    String otherUserId, {
+    String? senderName,
+  }) async {
     if (text.trim().isEmpty) return;
     try {
       await _databaseService.sendMessage(chatId, senderId, text, otherUserId);
+
+      // Trigger notification for the recipient
+      await NotificationService().sendNewMessageNotification(
+        otherUserId,
+        senderId,
+        senderName ?? 'Someone',
+        text,
+        chatId,
+      );
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();

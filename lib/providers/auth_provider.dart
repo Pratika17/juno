@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/notification_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -171,11 +172,26 @@ class AuthProvider with ChangeNotifier {
               "Failed to load or create user profile. Please check your connection.";
         }
       }
+
+      // Initialize Push Notifications if user is validated
+      if (_currentUserModel != null) {
+        _setupPushNotifications(targetUser.uid);
+      }
+
       notifyListeners();
     } catch (e) {
       print('DEBUG: Error fetching user model: $e');
       _errorMessage = "Error fetching profile: $e";
       notifyListeners();
+    }
+  }
+
+  Future<void> _setupPushNotifications(String userId) async {
+    final notificationService = NotificationService();
+    await notificationService.initNotifications();
+    String? token = await notificationService.getFCMToken();
+    if (token != null) {
+      await notificationService.updateFCMToken(userId, token);
     }
   }
 }
