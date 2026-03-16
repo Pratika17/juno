@@ -5,6 +5,7 @@ import '../../providers/my_posts_provider.dart';
 import '../../models/item_model.dart';
 import '../../widgets/item_card.dart';
 import '../../utils/constants.dart';
+import '../../services/pdf_service.dart';
 import 'edit_item_screen.dart';
 import '../../widgets/item_card_skeleton.dart';
 
@@ -52,6 +53,32 @@ class _MyPostsScreenState extends State<MyPostsScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Posts'),
+        actions: [
+          Consumer<MyPostsProvider>(
+            builder: (context, provider, child) {
+              return IconButton(
+                icon: const Icon(Icons.picture_as_pdf),
+                tooltip: 'Export Report',
+                onPressed: () async {
+                  final allItems = [...provider.lostItems, ...provider.foundItems];
+                  if (allItems.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No posts to export')),
+                    );
+                    return;
+                  }
+                  try {
+                    await PDFService.generateMyPostsReport(allItems);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to generate PDF: $e')),
+                    );
+                  }
+                },
+              );
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [

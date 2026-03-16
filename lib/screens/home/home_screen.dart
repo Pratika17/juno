@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/item_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../utils/constants.dart';
 import '../../widgets/item_card_skeleton.dart';
 import '../../widgets/item_card.dart';
 import '../notifications/notifications_screen.dart';
+import '../profile/profile_screen.dart';
+import '../chat/chat_list_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // screens/home/ -> .. -> screens/ -> auth/ -> login_screen.dart
 // So ../auth/login_screen.dart is correct.
@@ -118,9 +121,9 @@ class HomeScreen extends StatelessWidget {
             title: const Text('Profile'),
             onTap: () {
               Navigator.pop(context);
-              // Navigate to profile
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile screen coming soon!')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
               );
             },
           ),
@@ -129,21 +132,23 @@ class HomeScreen extends StatelessWidget {
             title: const Text('Chats'),
             onTap: () {
               Navigator.pop(context);
-              // Navigate to chats
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Chat List screen coming soon!')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ChatListScreen()),
               );
             },
           ),
           const Divider(),
-          // Theme Toggle Placeholder
-          SwitchListTile(
-            title: const Text('Dark Mode'),
-            secondary: const Icon(Icons.dark_mode),
-            value: false, // TODO: Connect to ThemeProvider
-            onChanged: (val) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Theme toggling coming soon!')),
+          // Theme Toggle
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return SwitchListTile(
+                title: const Text('Dark Mode'),
+                secondary: const Icon(Icons.dark_mode),
+                value: themeProvider.isDarkMode,
+                onChanged: (val) {
+                  themeProvider.toggleTheme(val);
+                },
               );
             },
           ),

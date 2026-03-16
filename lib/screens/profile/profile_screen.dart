@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../utils/constants.dart';
+import '../admin/admin_screen.dart';
 import 'profile_edit_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -60,6 +62,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -85,37 +89,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
               backgroundColor: AppColors.primary,
               backgroundImage:
                   user.profileImageUrl != null &&
-                      user.profileImageUrl!.isNotEmpty
-                  ? NetworkImage(user.profileImageUrl!)
-                  : null,
+                          user.profileImageUrl!.isNotEmpty
+                      ? NetworkImage(user.profileImageUrl!)
+                      : null,
               child:
                   user.profileImageUrl == null || user.profileImageUrl!.isEmpty
-                  ? Text(
-                      user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                      style: const TextStyle(fontSize: 48, color: Colors.white),
-                    )
-                  : null,
+                      ? Text(
+                          user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                          style: const TextStyle(fontSize: 48, color: Colors.white),
+                        )
+                      : null,
             ),
             const SizedBox(height: 16),
             Text(
               user.name,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               user.department,
-              style: const TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.grey[400] : Colors.grey[700],
+              ),
             ),
             const SizedBox(height: 32),
 
+            // Settings/Theme Switch
+            Consumer<ThemeProvider>(
+              builder: (context, themeProvider, child) {
+                return _buildSettingTile(
+                  icon: Icons.dark_mode,
+                  title: 'Dark Mode',
+                  trailing: Switch(
+                    value: themeProvider.isDarkMode,
+                    onChanged: (value) {
+                      themeProvider.toggleTheme(value);
+                    },
+                    activeColor: AppColors.primary,
+                  ),
+                );
+              },
+            ),
+
+            if (user.isAdmin) ...[
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: _buildSettingTile(
+                  icon: Icons.admin_panel_settings,
+                  title: 'Admin Dashboard',
+                  trailing: const Icon(Icons.chevron_right),
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 16),
+
             // Info Cards
-            _buildInfoTile(Icons.email, 'Email', user.email),
+            _buildInfoTile(Icons.email, 'Email', user.email, isDark),
             const SizedBox(height: 16),
-            _buildInfoTile(Icons.phone, 'Phone', user.phone),
+            _buildInfoTile(Icons.phone, 'Phone', user.phone, isDark),
             const SizedBox(height: 16),
-            _buildInfoTile(Icons.business, 'Department', user.department),
+            _buildInfoTile(Icons.business, 'Department', user.department, isDark),
 
             const SizedBox(height: 48),
 
@@ -131,7 +176,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.red.withValues(alpha: 0.1),
+                  backgroundColor: Colors.red.withOpacity(0.1),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -142,9 +187,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
 
             const SizedBox(height: 32),
+
             Text(
               'Version $_appVersion',
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              style: TextStyle(
+                color: isDark ? Colors.grey[500] : Colors.grey,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -152,12 +201,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String label, String value) {
+  Widget _buildSettingTile({
+    required IconData icon,
+    required String title,
+    required Widget trailing,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: isDark ? AppColors.darkSurface : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(
+          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppColors.primary),
+              const SizedBox(width: 16),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          trailing,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoTile(IconData icon, String label, String value, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -169,7 +257,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
               ),
               const SizedBox(height: 4),
               Text(

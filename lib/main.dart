@@ -7,6 +7,7 @@ import 'package:unifound/providers/auth_provider.dart';
 import 'package:unifound/providers/item_provider.dart';
 import 'package:unifound/providers/my_posts_provider.dart';
 import 'package:unifound/providers/chat_provider.dart';
+import 'package:unifound/providers/theme_provider.dart';
 import 'package:unifound/screens/auth/login_screen.dart';
 import 'package:unifound/screens/home/home_screen.dart';
 import 'package:unifound/screens/posts/add_item_screen.dart';
@@ -37,50 +38,25 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ItemProvider()),
         ChangeNotifierProvider(create: (_) => MyPostsProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        title: 'UniFound',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primaryColor: AppColors.primary,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primary,
-            secondary: AppColors.secondary,
-          ),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            elevation: 2,
-            centerTitle: true,
-          ),
-          cardTheme: CardThemeData(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          inputDecorationTheme: const InputDecorationTheme(
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-        ),
-        home: const OfflineBanner(child: AuthWrapper()),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            navigatorKey: navigatorKey,
+            title: 'UniFound',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeProvider.themeMode,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            home: const OfflineBanner(child: AuthWrapper()),
+          );
+        },
       ),
     );
   }
 }
+
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
