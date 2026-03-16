@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // App Colors
 class AppColors {
   // Light Theme Colors
-  static const Color primary = Color(0xFF2196F3);
-  static const Color primaryVariant = Color(0xFF1976D2);
-  static const Color secondary = Color(0xFFFF9800);
-  static const Color secondaryVariant = Color(0xFFF57C00);
-  static const Color background = Color(0xFFF5F5F5);
+  static const Color primary = Color(0xFF57419D); // Dark Purple
+  static const Color primaryVariant = Color(0xFF4C3B8B);
+  static const Color secondary = Color(0xFFF4C754); // Yellow
+  static const Color secondaryVariant = Color(0xFFDAB34A);
+  static const Color background = Color(0xFFF4F4F9); // Light grayish purple background
+  static const Color surface = Color(0xFFFFFFFF);
   static const Color error = Color(0xFFB00020);
-  static const Color textPrimary = Color(0xFF000000);
+  static const Color textPrimary = Color(0xFF333333);
   static const Color textSecondary = Color(0xFF757575);
 
   // Dark Theme Colors
-  static const Color darkBackground = Color(0xFF121212);
+  static const Color darkBackground = Color(0xFF000000); // Deep Black
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkTextPrimary = Color(0xFFFFFFFF);
   static const Color darkTextSecondary = Color(0xB3FFFFFF);
@@ -29,32 +31,47 @@ class AppTheme {
     ),
     useMaterial3: true,
     scaffoldBackgroundColor: AppColors.background,
+    textTheme: GoogleFonts.poppinsTextTheme(),
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
-      elevation: 2,
+      backgroundColor: Colors.transparent,
+      foregroundColor: AppColors.textPrimary,
+      elevation: 0,
       centerTitle: true,
     ),
     cardTheme: CardThemeData(
-      elevation: 4,
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       color: Colors.white,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.secondary, // Yellow buttons are common
         foregroundColor: Colors.white,
-        elevation: 2,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(30),
         ),
+        padding: const EdgeInsets.symmetric(vertical: 16),
       ),
     ),
-    inputDecorationTheme: const InputDecorationTheme(
-      border: OutlineInputBorder(),
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     ),
   );
 
@@ -64,63 +81,78 @@ class AppTheme {
       seedColor: AppColors.primary,
       secondary: AppColors.secondary,
       brightness: Brightness.dark,
-      background: AppColors.darkBackground,
       surface: AppColors.darkSurface,
     ),
     useMaterial3: true,
     scaffoldBackgroundColor: AppColors.darkBackground,
+    textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.darkSurface,
+      backgroundColor: Colors.transparent,
       foregroundColor: AppColors.darkTextPrimary,
-      elevation: 2,
+      elevation: 0,
       centerTitle: true,
     ),
     cardTheme: CardThemeData(
-      elevation: 4,
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       color: AppColors.darkSurface,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.secondary,
         foregroundColor: Colors.white,
-        elevation: 2,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(30),
         ),
+        padding: const EdgeInsets.symmetric(vertical: 16),
       ),
     ),
-    inputDecorationTheme: const InputDecorationTheme(
-      border: OutlineInputBorder(),
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.darkSurface,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.darkSurface,
+      backgroundColor: AppColors.darkBackground, // or darkSurface
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.darkTextSecondary,
+      elevation: 0,
     ),
   );
 }
 
 // Text Styles
 class AppTextStyles {
-  static const TextStyle heading1 = TextStyle(
-    fontSize: 24,
+  static TextStyle heading1 = GoogleFonts.poppins(
+    fontSize: 28,
     fontWeight: FontWeight.bold,
   );
 
-  static const TextStyle heading2 = TextStyle(
-    fontSize: 20,
+  static TextStyle heading2 = GoogleFonts.poppins(
+    fontSize: 22,
     fontWeight: FontWeight.bold,
   );
 
-  static const TextStyle bodyText = TextStyle(
+  static TextStyle bodyText = GoogleFonts.poppins(
     fontSize: 16,
   );
 
-  static const TextStyle bodyTextSecondary = TextStyle(
+  static TextStyle bodyTextSecondary = GoogleFonts.poppins(
     fontSize: 14,
   );
 }

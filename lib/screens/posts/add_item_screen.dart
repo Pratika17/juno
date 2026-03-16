@@ -12,7 +12,6 @@ import '../../services/database_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/validators.dart';
-import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
 class AddItemScreen extends StatefulWidget {
@@ -211,13 +210,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
           _selectedDate = DateTime.now();
         });
 
-        // Only pop if we can (e.g., if this screen was pushed).
-        // If it's a tab, we stay here or user manually switches.
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
-        } else {
-          // Optionally, we could try to switch to Home tab if we had access to a NavigationProvider.
-          // For now, staying on the fresh form is safe.
         }
       }
     } catch (e) {
@@ -231,60 +225,139 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
+  Widget _buildFieldLabel(String label, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
+      child: Text(
+        label,
+        style: AppTextStyles.bodyTextSecondary.copyWith(
+          color: isDark ? Colors.white70 : Colors.black87,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Post Item')),
+      appBar: AppBar(
+        title: const Text('Create ad', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Type Selection
-              SegmentedButton<ItemType>(
-                segments: const [
-                  ButtonSegment(
-                    value: ItemType.lost,
-                    label: Text('Lost Object'),
-                    icon: Icon(Icons.search),
-                  ),
-                  ButtonSegment(
-                    value: ItemType.found,
-                    label: Text('Found Object'),
-                    icon: Icon(Icons.check_circle_outline),
-                  ),
-                ],
-                selected: {_selectedType},
-                onSelectionChanged: (Set<ItemType> newSelection) {
+              // Category Selection
+              _buildFieldLabel('Category', isDark),
+              DropdownButtonFormField<ItemCategory>(
+                value: _selectedCategory,
+                hint: Text('Select category', style: TextStyle(color: isDark ? Colors.white54 : Colors.black38, fontSize: 13)),
+                items: ItemCategory.values.map((category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category.toString().split('.').last.toUpperCase()),
+                  );
+                }).toList(),
+                onChanged: (value) {
                   setState(() {
-                    _selectedType = newSelection.first;
+                    _selectedCategory = value;
                   });
                 },
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color>((
-                    states,
-                  ) {
-                    if (states.contains(MaterialState.selected)) {
-                      return _selectedType == ItemType.lost
-                          ? Colors.red.withOpacity(0.2)
-                          : Colors.green.withOpacity(0.2);
-                    }
-                    return Colors.transparent;
-                  }),
-                ),
+                decoration: const InputDecoration(), // Uses standard theme
               ),
               const SizedBox(height: 24),
 
-              // Image Picker
+              // Post Type (Lost / Found)
+              _buildFieldLabel('Post Type', isDark),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _selectedType == ItemType.lost ? AppColors.primary : (isDark ? AppColors.darkSurface : Colors.grey[200]),
+                        foregroundColor: _selectedType == ItemType.lost ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), // Slightly pill
+                      ),
+                      onPressed: () {
+                        setState(() => _selectedType = ItemType.lost);
+                      },
+                      child: const Text('Lost'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _selectedType == ItemType.found ? AppColors.secondary : (isDark ? AppColors.darkSurface : Colors.grey[200]),
+                        foregroundColor: _selectedType == ItemType.found ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        setState(() => _selectedType = ItemType.found);
+                      },
+                      child: const Text('Found'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Title
+              _buildFieldLabel('Title', isDark),
+              CustomTextField(
+                controller: _titleController,
+                hintText: 'A title needs at least 10 characters',
+                validator: (value) {
+                  final reqErr = Validators.validateRequired(value, 'Title');
+                  if (reqErr != null) return reqErr;
+                  if (value!.length > 50) return 'Title too long';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Description
+              _buildFieldLabel('Description', isDark),
+              CustomTextField(
+                controller: _descriptionController,
+                hintText: 'How to get in contact with the owner etc',
+                maxLines: 3,
+                validator: (value) {
+                  return Validators.validateRequired(value, 'Description');
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Location (Mislabelled as Category in image, but using proper label)
+              _buildFieldLabel('Location', isDark),
+              CustomTextField(
+                controller: _locationController,
+                hintText: 'Where item was found or lost',
+                validator: (value) => Validators.validateRequired(value, 'Location'),
+              ),
+              const SizedBox(height: 24),
+
+              // Image Picker Box
+              _buildFieldLabel('Photo', isDark),
               GestureDetector(
                 onTap: _showImagePickerOptions,
                 child: Container(
-                  height: 200,
+                  height: 150,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
+                    color: isDark ? AppColors.darkSurface : Colors.grey[200],
+                    borderRadius: BorderRadius.circular(20),
                     image: _selectedImage != null
                         ? DecorationImage(
                             image: FileImage(_selectedImage!),
@@ -296,15 +369,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.add_a_photo,
-                              size: 50,
-                              color: Colors.grey[600],
-                            ),
+                            Icon(Icons.camera_alt_outlined, size: 40, color: isDark ? Colors.white54 : Colors.black45),
                             const SizedBox(height: 8),
                             Text(
-                              'Add Photo',
-                              style: TextStyle(color: Colors.grey[600]),
+                              'Take a photo or upload an image',
+                              style: TextStyle(color: isDark ? Colors.white54 : Colors.black45, fontSize: 12),
                             ),
                           ],
                         )
@@ -312,117 +381,38 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           alignment: Alignment.topRight,
                           child: IconButton(
                             icon: const Icon(Icons.close, color: Colors.white),
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.black45,
-                            ),
+                            style: IconButton.styleFrom(backgroundColor: Colors.black45),
                             onPressed: () {
-                              setState(() {
-                                _selectedImage = null;
-                              });
+                              setState(() => _selectedImage = null);
                             },
                           ),
                         ),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Title
-              CustomTextField(
-                controller: _titleController,
-                labelText: 'Title',
-                hintText: 'e.g. Red iPhone 13',
-                prefixIcon: const Icon(Icons.title),
-                validator: (value) {
-                  final reqErr = Validators.validateRequired(value, 'Title');
-                  if (reqErr != null) return reqErr;
-                  if (value!.length > 50)
-                    return 'Title too long (max 50 chars)';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Category
-              DropdownButtonFormField<ItemCategory>(
-                value: _selectedCategory,
-                decoration: InputDecoration(
-                  labelText: 'Category',
-                  prefixIcon: const Icon(Icons.category),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                items: ItemCategory.values.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(
-                      category.toString().split('.').last.toUpperCase(),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Location
-              CustomTextField(
-                controller: _locationController,
-                labelText: 'Location',
-                hintText: 'e.g. Library 2nd Floor',
-                prefixIcon: const Icon(Icons.location_on),
-                validator: (value) =>
-                    Validators.validateRequired(value, 'Location'),
-              ),
-              const SizedBox(height: 16),
-
-              // Date Picker
-              InkWell(
-                onTap: _selectDate,
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: 'Date',
-                    prefixIcon: const Icon(Icons.calendar_today),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    suffixIcon: const Icon(Icons.arrow_drop_down),
-                  ),
-                  child: Text(DateFormat('MMM dd, yyyy').format(_selectedDate)),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              CustomTextField(
-                controller: _descriptionController,
-                labelText: 'Description',
-                hintText: 'Describe the item in detail...',
-                prefixIcon: const Icon(Icons.description),
-                maxLines: 4,
-                validator: (value) {
-                  final reqErr = Validators.validateRequired(
-                    value,
-                    'Description',
-                  );
-                  if (reqErr != null) return reqErr;
-                  if (value!.length > 500)
-                    return 'Description too long (max 500 chars)';
-                  return null;
-                },
-              ),
               const SizedBox(height: 32),
 
-              // Submit Button
-              CustomButton(
-                text: 'Post Item',
-                onPressed: _submitById,
-                isLoading: _isLoading,
-                backgroundColor: AppColors.primary,
+              // Date Picker (Optional if needed, but keeping it)
+              Row(
+                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                 children: [
+                   Text('Date', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                   TextButton(
+                     onPressed: _selectDate,
+                     child: Text(DateFormat('MMM dd, yyyy').format(_selectedDate), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary)),
+                   ),
+                 ],
               ),
+              const SizedBox(height: 24),
+
+              // Submit Button
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator())
+              else
+                ElevatedButton(
+                  onPressed: _submitById,
+                  child: const Text('Continue', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              const SizedBox(height: 48),
             ],
           ),
         ),

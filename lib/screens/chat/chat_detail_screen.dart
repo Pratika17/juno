@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
-import '../../models/message_model.dart';
 import '../../models/item_model.dart';
 import '../../models/chat_model.dart';
 import '../../widgets/message_bubble.dart';
 import '../../widgets/item_chat_banner.dart';
 import '../../services/database_service.dart';
+import '../../utils/constants.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
@@ -152,7 +152,51 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final messages = chatProvider.messagesByChat[widget.chatId] ?? [];
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.otherUserName)),
+      appBar: AppBar(
+        title: Text(widget.otherUserName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            color: Colors.red,
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Delete Chat"),
+                    content: const Text("Are you sure you want to delete this chat permanently?"),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+                          await chatProvider.deleteChat(widget.chatId);
+                          if (context.mounted) {
+                            Navigator.of(context).pop(); // Go back to chat list
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Chat deleted successfully')),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          "Delete",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Item Context Banner
@@ -175,16 +219,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     },
                   ),
           ),
-          _buildMessageInput(),
+          _buildMessageInput(Theme.of(context).brightness == Brightness.dark),
         ],
       ),
     );
   }
 
-  Widget _buildMessageInput() {
+  Widget _buildMessageInput(bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      color: isDark ? AppColors.darkBackground : Colors.white,
       child: SafeArea(
         child: Row(
           children: [
@@ -193,25 +237,32 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 controller: _messageController,
                 decoration: InputDecoration(
                   hintText: 'Type a message...',
+                  hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.grey, fontSize: 14),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.grey[200],
+                  fillColor: isDark ? AppColors.darkSurface : Colors.grey[100],
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                    horizontal: 20,
+                    vertical: 12,
                   ),
                 ),
                 textCapitalization: TextCapitalization.sentences,
               ),
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: _sendMessage,
-              icon: const Icon(Icons.send),
-              color: Theme.of(context).primaryColor,
+            const SizedBox(width: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: _sendMessage,
+                icon: const Icon(Icons.send, size: 20),
+                color: Colors.white,
+              ),
             ),
           ],
         ),

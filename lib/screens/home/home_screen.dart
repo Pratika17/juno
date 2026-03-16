@@ -21,9 +21,10 @@ class HomeScreen extends StatelessWidget {
     // ... (rest of build)
     return Scaffold(
       appBar: AppBar(
-        title: const Text('UniFound'),
+        title: const Text('Items', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
@@ -65,15 +66,12 @@ class HomeScreen extends StatelessWidget {
         children: [
           _buildSearchBar(context),
           _buildFilters(context),
+          const SizedBox(height: 8),
           Expanded(child: _buildItemGrid(context)),
         ],
       ),
     );
   }
-  // ... (drawer and search bar unchanged for now, reusing file content implicitly? NO, must provide full content for safety or valid chunks)
-  // I will provide chunks.
-
-  // Chunk 1: Imports
 
   Widget _buildDrawer(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -159,7 +157,6 @@ class HomeScreen extends StatelessWidget {
             onTap: () async {
               Navigator.pop(context); // close drawer
               await authProvider.signOut();
-              // AuthWrapper in main.dart will handle navigation to LoginScreen
             },
           ),
         ],
@@ -169,125 +166,189 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildSearchBar(BuildContext context) {
     final itemProvider = Provider.of<ItemProvider>(context, listen: false);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Search items...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 0,
-            horizontal: 20,
-          ),
-          filled: true,
-          fillColor: Colors.grey[100],
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            if (!isDark)
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+          ],
         ),
-        onChanged: (value) {
-          // Debounce could be added here
-          itemProvider.searchItems(value);
-        },
+        child: TextField(
+          decoration: InputDecoration(
+            hintText: 'Search...',
+            hintStyle: TextStyle(
+                color: isDark ? Colors.white54 : Colors.grey, fontSize: 14),
+            prefixIcon: Icon(Icons.search,
+                color: isDark ? Colors.white54 : Colors.grey),
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+            fillColor: Colors.transparent,
+            filled: true,
+          ),
+          onChanged: (value) {
+            itemProvider.searchItems(value);
+          },
+        ),
       ),
     );
   }
 
   Widget _buildFilters(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Consumer<ItemProvider>(
       builder: (context, provider, child) {
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              _buildFilterChip(
-                context,
-                label: 'All',
-                isSelected: provider.currentFilter == null,
-                onSelected: () => provider.applyFilter(null),
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                context,
-                label: 'Lost',
-                isSelected: provider.currentFilter == ItemType.lost,
-                onSelected: () => provider.applyFilter(ItemType.lost),
-                color: Colors.red[100],
-                selectedColor: Colors.red[200],
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                context,
-                label: 'Found',
-                isSelected: provider.currentFilter == ItemType.found,
-                onSelected: () => provider.applyFilter(ItemType.found),
-                color: Colors.green[100],
-                selectedColor: Colors.green[200],
-              ),
-              const SizedBox(width: 16),
-              // Category Dropdown wrapped in a container for styling
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<ItemCategory>(
-                    value: provider.currentCategory,
-                    hint: const Text('Category'),
-                    icon: const Icon(Icons.arrow_drop_down),
-                    isDense: true,
-                    onChanged: (ItemCategory? newValue) {
-                      provider.applyCategory(newValue);
-                    },
-                    items: [
-                      const DropdownMenuItem<ItemCategory>(
-                        value: null,
-                        child: Text('All Categories'),
-                      ),
-                      ...ItemCategory.values.map((ItemCategory category) {
-                        return DropdownMenuItem<ItemCategory>(
-                          value: category,
-                          child: Text(
-                            category.toString().split('.').last.toUpperCase(),
-                          ),
-                        );
-                      }),
-                    ],
+        return Column(
+          children: [
+            // Type Filters (All, Lost, Found)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildTypeChip(
+                    context,
+                    label: 'All Types',
+                    isSelected: provider.currentFilter == null,
+                    onSelected: () => provider.applyFilter(null),
+                    isDark: isDark,
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  _buildTypeChip(
+                    context,
+                    label: 'Lost',
+                    isSelected: provider.currentFilter == ItemType.lost,
+                    onSelected: () => provider.applyFilter(ItemType.lost),
+                    activeColor: AppColors.primary,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildTypeChip(
+                    context,
+                    label: 'Found',
+                    isSelected: provider.currentFilter == ItemType.found,
+                    onSelected: () => provider.applyFilter(ItemType.found),
+                    activeColor: AppColors.secondary,
+                    isDark: isDark,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            // Category Filters (Horizontal Text List)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildCategoryTextTab(
+                    context,
+                    label: 'All',
+                    isSelected: provider.currentCategory == null,
+                    onSelected: () => provider.applyCategory(null),
+                    isDark: isDark,
+                  ),
+                  ...ItemCategory.values.map((category) {
+                    return _buildCategoryTextTab(
+                      context,
+                      label: category.toString().split('.').last.toUpperCase(),
+                      isSelected: provider.currentCategory == category,
+                      onSelected: () => provider.applyCategory(category),
+                      isDark: isDark,
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _buildFilterChip(
+  Widget _buildTypeChip(
     BuildContext context, {
     required String label,
     required bool isSelected,
     required VoidCallback onSelected,
-    Color? color,
-    Color? selectedColor,
+    required bool isDark,
+    Color? activeColor,
   }) {
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onSelected(),
-      backgroundColor: color ?? Colors.grey[200],
-      selectedColor:
-          selectedColor ??
-          Theme.of(context).primaryColor.withValues(alpha: 0.3),
-      checkmarkColor: Colors.black87,
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.black : Colors.black87,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+    // If no active color is provided, default to yellow
+    final color = activeColor ?? AppColors.secondary;
+    
+    return GestureDetector(
+      onTap: onSelected,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color
+              : (isDark ? AppColors.darkSurface : Colors.grey[200]),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected
+                ? Colors.white
+                : (isDark ? Colors.white70 : Colors.black87),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 13,
+          ),
+        ),
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      side: BorderSide.none,
+    );
+  }
+
+  Widget _buildCategoryTextTab(
+    BuildContext context, {
+    required String label,
+    required bool isSelected,
+    required VoidCallback onSelected,
+    required bool isDark,
+  }) {
+    return GestureDetector(
+      onTap: onSelected,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 24.0),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? AppColors.secondary
+                    : (isDark ? Colors.white54 : Colors.grey),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+            if (isSelected)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                height: 3,
+                width: 20,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 

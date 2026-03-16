@@ -129,6 +129,19 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  // Delete an existing chat
+  Future<void> deleteChat(String chatId) async {
+    try {
+      await _databaseService.deleteChat(chatId);
+      // Remove from local list immediately for better UX
+      _chats.removeWhere((chat) => chat.chatId == chatId);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     _chatsSubscription?.cancel();

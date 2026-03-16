@@ -12,6 +12,9 @@ class ItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isLost = item.itemType == ItemType.lost;
+
     return GestureDetector(
       onTap:
           onTap ??
@@ -24,73 +27,98 @@ class ItemCard extends StatelessWidget {
             );
           },
       child: Card(
-        elevation: 2,
+        elevation: 0,
+        color: isDark ? AppColors.darkSurface : Colors.white,
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: isDark
+              ? BorderSide.none
+              : BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image
             Expanded(
-              flex: 3,
-              child: item.imageUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: item.imageUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
-                        child: const Center(child: CircularProgressIndicator()),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[200],
-                        child: const Icon(
-                          Icons.broken_image,
-                          color: Colors.grey,
+              flex: 5,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  item.imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: item.imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: isDark ? Colors.grey[800] : Colors.grey[200],
+                            child: const Center(
+                                child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: isDark ? Colors.grey[800] : Colors.grey[200],
+                            child: const Icon(
+                              Icons.broken_image,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          color: isDark ? Colors.grey[800] : Colors.grey[200],
+                          child: const Center(
+                            child: Icon(Icons.image,
+                                size: 50, color: Colors.grey),
+                          ),
                         ),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: Icon(Icons.image, size: 50, color: Colors.grey),
-                      ),
-                    ),
+                ],
+              ),
             ),
             // Content
             Expanded(
-              flex: 2,
+              flex: 6,
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
-                    Text(
-                      item.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    // Title and Heart
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            style: AppTextStyles.bodyText.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.favorite_border,
+                          size: 16,
+                          color: isDark ? Colors.white54 : Colors.grey,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    // Location & Date
+                    const SizedBox(height: 6),
+                    // Location
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on,
                           size: 14,
-                          color: Colors.grey,
+                          color: isDark ? Colors.white54 : Colors.grey,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             item.location,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey,
+                              color: isDark ? Colors.white54 : Colors.grey,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -98,18 +126,45 @@ class ItemCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                    // Optional Date / Timeago could be added here
                     const Spacer(),
-                    // Status & Category
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildStatusBadge(item.status),
-                        Icon(
-                          _getCategoryIcon(item.category),
-                          size: 18,
-                          color: AppColors.primary,
+                    // Bottom Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 32,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              isLost ? AppColors.primary : AppColors.secondary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
-                      ],
+                        onPressed: () {
+                          // Tap triggers card tap
+                          if (onTap != null) {
+                            onTap!();
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ItemDetailScreen(item: item),
+                              ),
+                            );
+                          }
+                        },
+                        child: Text(
+                          isLost ? 'Lost' : 'Found',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -119,65 +174,5 @@ class ItemCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildStatusBadge(ItemStatus status) {
-    Color color;
-    String text;
-
-    switch (status) {
-      case ItemStatus.active:
-        color = Colors.green;
-        text = 'Active';
-        break;
-      case ItemStatus.recovered:
-        color = Colors.orange;
-        text = 'Recovered';
-        break;
-      case ItemStatus.returned:
-        color = Colors.blue;
-        text = 'Returned';
-        break;
-      default: // Fallback
-        color = Colors.grey;
-        text = 'Unknown';
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 10,
-          color: color,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  IconData _getCategoryIcon(ItemCategory category) {
-    switch (category) {
-      case ItemCategory.idCard:
-        return Icons.badge;
-      case ItemCategory.phone:
-        return Icons.phone_android;
-      case ItemCategory.wallet:
-        return Icons.account_balance_wallet;
-      case ItemCategory.books:
-        return Icons.book;
-      case ItemCategory.electronics:
-        return Icons.laptop;
-      case ItemCategory.keys:
-        return Icons.vpn_key;
-      case ItemCategory.other:
-        return Icons.category;
-    }
   }
 }

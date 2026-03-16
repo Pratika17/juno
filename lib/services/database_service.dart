@@ -77,6 +77,16 @@ class DatabaseService {
 
   Future<void> deleteItem(String itemId) async {
     try {
+      // Find all chats associated with this item
+      QuerySnapshot associatedChats = await _chatsCollection
+          .where('itemId', isEqualTo: itemId)
+          .get();
+          
+      // Delete each associated chat
+      for (var doc in associatedChats.docs) {
+        await deleteChat(doc.id);
+      }
+
       await _itemsCollection.doc(itemId).delete();
     } catch (e) {
       throw Exception('Failed to delete item: $e');
@@ -316,6 +326,23 @@ class DatabaseService {
       await batch.commit();
     } catch (e) {
       throw Exception('Failed to mark chat as read: $e');
+    }
+  }
+
+  Future<void> deleteChat(String chatId) async {
+    try {
+      // First delete all messages in the subcollection
+      final messagesQuery = await _chatsCollection.doc(chatId).collection('messages').get();
+      WriteBatch batch = _firestore.batch();
+      for (var doc in messagesQuery.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+
+      // Then delete the chat document itself
+      await _chatsCollection.doc(chatId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete chat: $e');
     }
   }
 }
