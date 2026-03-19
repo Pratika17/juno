@@ -17,6 +17,8 @@ class ItemModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<String> reportedBy;
+  final double? latitude;
+  final double? longitude;
 
   ItemModel({
     required this.itemId,
@@ -34,6 +36,8 @@ class ItemModel {
     required this.createdAt,
     required this.updatedAt,
     this.reportedBy = const [],
+    this.latitude,
+    this.longitude,
   });
 
   factory ItemModel.fromFirestore(DocumentSnapshot doc) {
@@ -69,6 +73,8 @@ class ItemModel {
           ? (data['updatedAt'] as Timestamp).toDate()
           : DateTime.now(),
       reportedBy: List<String>.from(data['reportedBy'] ?? []),
+      latitude: data['latitude']?.toDouble(),
+      longitude: data['longitude']?.toDouble(),
     );
   }
 
@@ -88,6 +94,8 @@ class ItemModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'reportedBy': reportedBy,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -101,6 +109,8 @@ class ItemModel {
     DateTime? date,
     ItemStatus? status,
     List<String>? reportedBy,
+    double? latitude,
+    double? longitude,
   }) {
     return ItemModel(
       itemId: itemId,
@@ -118,6 +128,8 @@ class ItemModel {
       createdAt: createdAt,
       updatedAt: DateTime.now(),
       reportedBy: reportedBy ?? this.reportedBy,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }

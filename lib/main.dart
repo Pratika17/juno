@@ -76,6 +76,33 @@ class AuthWrapper extends StatelessWidget {
           }
 
           if (authProvider.currentUserModel == null) {
+            if (authProvider.errorMessage != null && !authProvider.isLoading) {
+              return Scaffold(
+                body: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                        const SizedBox(height: 16),
+                        Text(
+                          authProvider.errorMessage!,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () {
+                            authProvider.signOut();
+                          },
+                          child: const Text('Sign Out & Try Again'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );

@@ -13,6 +13,8 @@ import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/validators.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/location_input.dart';
+import '../../models/place_location.dart';
 
 class AddItemScreen extends StatefulWidget {
   const AddItemScreen({super.key});
@@ -25,9 +27,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
 
   ItemCategory? _selectedCategory;
+  PlaceLocation? _selectedLocation;
   ItemType _selectedType = ItemType.lost;
   DateTime _selectedDate = DateTime.now();
   File? _selectedImage;
@@ -39,7 +41,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _locationController.dispose();
     super.dispose();
   }
 
@@ -116,6 +117,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
       ).showSnackBar(const SnackBar(content: Text('Please select a category')));
       return;
     }
+    if (_selectedLocation == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a location')));
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -169,7 +176,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
         category: _selectedCategory!,
         itemType: _selectedType,
         date: _selectedDate,
-        location: _locationController.text.trim(),
+        location: _selectedLocation!.address,
+        latitude: _selectedLocation!.latitude,
+        longitude: _selectedLocation!.longitude,
         imageUrl: imageUrl,
         status: ItemStatus.active,
         createdAt: DateTime.now(),
@@ -202,9 +211,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
         // Clear form
         _titleController.clear();
         _descriptionController.clear();
-        _locationController.clear();
         setState(() {
           _selectedImage = null;
+          _selectedLocation = null;
           _selectedCategory = null;
           _selectedType = ItemType.lost;
           _selectedDate = DateTime.now();
@@ -340,12 +349,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Location (Mislabelled as Category in image, but using proper label)
+              // Location Input
               _buildFieldLabel('Location', isDark),
-              CustomTextField(
-                controller: _locationController,
-                hintText: 'Where item was found or lost',
-                validator: (value) => Validators.validateRequired(value, 'Location'),
+              LocationInput(
+                onSelectLocation: (location) {
+                  setState(() {
+                    _selectedLocation = location;
+                  });
+                },
               ),
               const SizedBox(height: 24),
 

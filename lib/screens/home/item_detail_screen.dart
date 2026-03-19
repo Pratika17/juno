@@ -12,6 +12,8 @@ import 'package:unifound/screens/chat/chat_detail_screen.dart';
 import '../../providers/item_provider.dart';
 import '../../providers/my_posts_provider.dart';
 import '../../providers/chat_provider.dart';
+import '../map_screen.dart';
+import '../../models/place_location.dart';
 
 class ItemDetailScreen extends StatefulWidget {
   final ItemModel item;
@@ -205,6 +207,70 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
+
+                  // Map Preview
+                  if (_item.latitude != null && _item.longitude != null) ...[
+                    const Text(
+                      'Location',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MapScreen(
+                              location: PlaceLocation(
+                                latitude: _item.latitude!,
+                                longitude: _item.longitude!,
+                                address: _item.location,
+                              ),
+                              isSelecting: false,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        height: 150,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300] ?? Colors.grey),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Image.network(
+                          'https://maps.googleapis.com/maps/api/staticmap?center=${_item.latitude},${_item.longitude}&zoom=16&size=600x300&maptype=roadmap&markers=color:red%7Clabel:A%7C${_item.latitude},${_item.longitude}&key=${AppConstants.googleMapsApiKey}',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Center(child: Text('Map preview not available')),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MapScreen(
+                                location: PlaceLocation(
+                                  latitude: _item.latitude!,
+                                  longitude: _item.longitude!,
+                                  address: _item.location,
+                                ),
+                                isSelecting: false,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.map),
+                        label: const Text('View on Map'),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
 
                   // owner info
                   Container(

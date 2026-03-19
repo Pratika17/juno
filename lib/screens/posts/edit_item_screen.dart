@@ -12,6 +12,8 @@ import '../../utils/constants.dart';
 import '../../utils/validators.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/location_input.dart';
+import '../../models/place_location.dart';
 
 class EditItemScreen extends StatefulWidget {
   final ItemModel item;
@@ -26,10 +28,10 @@ class _EditItemScreenState extends State<EditItemScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
-  late TextEditingController _locationController;
 
   late ItemCategory _selectedCategory;
   late ItemStatus _selectedStatus;
+  PlaceLocation? _selectedLocation;
   File? _newImage;
   bool _isLoading = false;
 
@@ -42,16 +44,22 @@ class _EditItemScreenState extends State<EditItemScreen> {
     _descriptionController = TextEditingController(
       text: widget.item.description,
     );
-    _locationController = TextEditingController(text: widget.item.location);
     _selectedCategory = widget.item.category;
     _selectedStatus = widget.item.status;
+    
+    if (widget.item.latitude != null && widget.item.longitude != null) {
+      _selectedLocation = PlaceLocation(
+        latitude: widget.item.latitude!,
+        longitude: widget.item.longitude!,
+        address: widget.item.location,
+      );
+    }
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _locationController.dispose();
     super.dispose();
   }
 
@@ -108,6 +116,15 @@ class _EditItemScreenState extends State<EditItemScreen> {
 
   Future<void> _submitById() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    if (_selectedLocation == null && widget.item.latitude == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a location')),
+        );
+      }
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -130,7 +147,9 @@ class _EditItemScreenState extends State<EditItemScreen> {
       final updatedItem = widget.item.copyWith(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        location: _locationController.text.trim(),
+        location: _selectedLocation?.address ?? widget.item.location,
+        latitude: _selectedLocation?.latitude ?? widget.item.latitude,
+        longitude: _selectedLocation?.longitude ?? widget.item.longitude,
         category: _selectedCategory,
         status: _selectedStatus,
         imageUrl: imageUrl,
@@ -259,13 +278,19 @@ class _EditItemScreenState extends State<EditItemScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Location
-              CustomTextField(
-                controller: _locationController,
-                labelText: 'Location',
-                prefixIcon: const Icon(Icons.location_on),
-                validator: (value) =>
-                    Validators.validateRequired(value, 'Location'),
+              // Location Input
+              const Text(
+                'Location',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              LocationInput(
+                initialLocation: _selectedLocation,
+                onSelectLocation: (location) {
+                  setState(() {
+                    _selectedLocation = location;
+                  });
+                },
               ),
               const SizedBox(height: 16),
 

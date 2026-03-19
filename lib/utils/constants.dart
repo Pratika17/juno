@@ -163,3 +163,8 @@ enum ItemCategory { idCard, phone, wallet, books, electronics, keys, other }
 enum ItemType { lost, found }
 
 enum ItemStatus { active, recovered, returned }
+
+class AppConstants {
+  // Replace with your actual Google Maps API Key in production
+  static const String googleMapsApiKey = 'AIzaSyAgRgam7t43c6CMwfiAvNVuCF2fhnEY-ug';
+}
