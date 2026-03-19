@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';

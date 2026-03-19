@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // App Colors
 class AppColors {
@@ -166,5 +167,5 @@ enum ItemStatus { active, recovered, returned }
 
 class AppConstants {
   // Replace with your actual Google Maps API Key in production
-  static const String googleMapsApiKey = 'AIzaSyAgRgam7t43c6CMwfiAvNVuCF2fhnEY-ug';
+  static String get googleMapsApiKey => dotenv.env['MAPS_API_KEY'] ?? '';
 }
